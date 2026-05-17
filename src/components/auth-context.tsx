@@ -27,53 +27,13 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<any | null>({ displayName: "User" });
+  const [token, setToken] = useState<string | null>("dummy-token");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [initialized, setInitialized] = useState(false);
+  const [initialized, setInitialized] = useState(true);
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      // Note: Firebase doesn't always provide the OAuth token in onAuthStateChanged
-      // We rely on the popup result or manual refresh logic if needed.
-      // For this app, we'll store the token from login in state.
-      setInitialized(true);
-    });
-    return () => unsubscribe();
-  }, [auth]);
-
-  const login = async () => {
-    setIsLoggingIn(true);
-    try {
-      const provider = new GoogleAuthProvider();
-      SCOPES.forEach(scope => provider.addScope(scope));
-      
-      const result: UserCredential = await signInWithPopup(auth, provider);
-      const credential = GoogleAuthProvider.credentialFromResult(result);
-      
-      if (credential?.accessToken) {
-        setToken(credential.accessToken);
-        setUser(result.user);
-      } else {
-        console.error("No access token returned from Google login");
-      }
-    } catch (error) {
-      console.error("Login failed:", error);
-    } finally {
-      setIsLoggingIn(false);
-    }
-  };
-
-  const logout = async () => {
-    await auth.signOut();
-    setToken(null);
-    setUser(null);
-  };
+  const login = async () => {};
+  const logout = async () => {};
 
   return (
     <AuthContext.Provider value={{ user, token, isLoggingIn, login, logout, initialized }}>

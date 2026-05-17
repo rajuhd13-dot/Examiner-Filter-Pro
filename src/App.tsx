@@ -448,42 +448,10 @@ const Dashboard: React.FC = () => {
 
   if (!initialized) return null;
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-6">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md bg-white p-10 rounded-[32px] shadow-2xl border border-gray-100 flex flex-col items-center text-center"
-        >
-          <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-6">
-            <Users className="w-8 h-8 text-blue-600" />
-          </div>
-          <h1 className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">Examiner Filter Pro</h1>
-          <p className="text-gray-500 mb-8 text-sm leading-relaxed">
-            Professional filtering and data management tool for <br/>Examiner Information. Please sign in to continue.
-          </p>
-          
-          <button
-            onClick={login}
-            disabled={isLoggingIn}
-            className="w-full flex items-center justify-center gap-3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-blue-200 active:scale-95 disabled:opacity-50"
-          >
-            {isLoggingIn ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <Users className="w-5 h-5" />
-            )}
-            Sign in with Google
-          </button>
-          
-          <p className="mt-8 text-[11px] text-gray-400 font-medium uppercase tracking-[2px]">
-            Powered by Google AI Studio
-          </p>
-        </motion.div>
-      </div>
-    );
-  }
+  // Bypass login requirement since data comes from Google Sheet proxy
+  // if (!user) {
+  //   ...
+  // }
 
   return (
     <div className="min-h-screen bg-[#F0F4F9] text-gray-900 font-sans pb-12">
