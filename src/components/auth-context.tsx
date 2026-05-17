@@ -1,14 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { initializeApp } from "firebase/app";
-import { 
-  getAuth, 
-  signInWithPopup, 
-  GoogleAuthProvider, 
-  onAuthStateChanged, 
-  User, 
-  UserCredential 
-} from "firebase/auth";
-import firebaseConfig from "../../firebase-applet-config.json";
+import React, { createContext, useContext, useState } from "react";
 
 // Shared scopes used by the app
 export const SCOPES = [
@@ -16,7 +6,7 @@ export const SCOPES = [
 ];
 
 interface AuthContextType {
-  user: User | null;
+  user: any | null;
   token: string | null;
   isLoggingIn: boolean;
   login: () => Promise<void>;

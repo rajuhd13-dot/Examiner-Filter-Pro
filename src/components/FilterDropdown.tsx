@@ -31,6 +31,7 @@ export const FilterDropdown: React.FC<FilterDropdownProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const formattedOptions = useMemo(() => {
+    if (!Array.isArray(options)) return [];
     return options.map(opt => {
       if (typeof opt === "string") {
         return { label: opt, value: opt === "(Blank)" ? "__BLANK__" : opt };

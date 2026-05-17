@@ -382,15 +382,15 @@ const Dashboard: React.FC = () => {
 
     // Transform data for Excel (similar to PDF logic if needed, but usually Excel users want raw data)
     // However, if we want to match the "Comment" column request for Excel too:
-    const excelHeader = [...dataToExport.header];
-    const statusIdx = excelHeader.findIndex(h => h.toLowerCase().includes("allow status"));
+    const excelHeader = Array.isArray(dataToExport.header) ? [...dataToExport.header] : [];
+    const statusIdx = excelHeader.findIndex(h => h && h.toLowerCase().includes("allow status"));
     if (statusIdx !== -1) excelHeader[statusIdx] = "Comment";
 
-    const excelRows = dataToExport.rows.map(row => {
-      const newRow = [...row];
-      if (statusIdx !== -1) newRow[statusIdx] = ""; 
+    const excelRows = Array.isArray(dataToExport.rows) ? dataToExport.rows.map(row => {
+      const newRow = Array.isArray(row) ? [...row] : [];
+      if (statusIdx !== -1 && newRow.length > statusIdx) newRow[statusIdx] = ""; 
       return newRow;
-    });
+    }) : [];
 
     const worksheet = XLSX.utils.aoa_to_sheet([excelHeader, ...excelRows]);
     const workbook = XLSX.utils.book_new();
@@ -406,20 +406,20 @@ const Dashboard: React.FC = () => {
     // Transform data for printing as per user request:
     // 1. Rename "Allow Status" to "Comment"
     // 2. Clear values in that column (make boxes empty)
-    const printHeader = [...dataToExport.header];
-    const statusIdx = printHeader.findIndex(h => h.toLowerCase().includes("allow status"));
+    const printHeader = Array.isArray(dataToExport.header) ? [...dataToExport.header] : [];
+    const statusIdx = printHeader.findIndex(h => h && h.toLowerCase().includes("allow status"));
     
     if (statusIdx !== -1) {
       printHeader[statusIdx] = "Comment";
     }
 
-    const printRows = dataToExport.rows.map(row => {
-      const newRow = [...row];
-      if (statusIdx !== -1) {
+    const printRows = Array.isArray(dataToExport.rows) ? dataToExport.rows.map(row => {
+      const newRow = Array.isArray(row) ? [...row] : [];
+      if (statusIdx !== -1 && newRow.length > statusIdx) {
         newRow[statusIdx] = ""; // Clear content
       }
       return newRow;
-    });
+    }) : [];
 
     const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
     const pageW = doc.internal.pageSize.getWidth();
@@ -647,7 +647,7 @@ const Dashboard: React.FC = () => {
           <FilterDropdown 
             label="Subject" 
             placeholder="Select Subjects" 
-            options={options?.subjects?.map(s => ({ label: s.label, value: s.key })) || []} 
+            options={Array.isArray(options?.subjects) ? options!.subjects.map(s => ({ label: s?.label || "", value: s?.key || "" })) : []} 
             selected={filters.subjectsSelected}
             onChange={(v) => setFilters(prev => ({ ...prev, subjectsSelected: v }))}
             emptyMeansAll
@@ -880,7 +880,7 @@ const Dashboard: React.FC = () => {
                 <table className="w-full border-collapse text-left text-sm table-auto min-w-[1200px]">
                   <thead className="sticky top-0 z-10">
                     <tr className="bg-blue-600 text-white font-bold capitalize text-[11px]">
-                      {result.header.map((h, i) => (
+                      {Array.isArray(result.header) && result.header.map((h, i) => (
                         <th key={i} className="px-4 py-4 whitespace-nowrap border-r border-blue-500/30 last:border-0 text-center">
                           {h}
                         </th>
@@ -888,10 +888,10 @@ const Dashboard: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {result.rows.map((row, i) => (
+                    {Array.isArray(result.rows) && result.rows.map((row, i) => (
                       <tr key={i} className="hover:bg-blue-50/50 transition-colors group">
-                        {row.map((cell, j) => {
-                          const isStatus = result.header[j].toLowerCase().includes("allow status");
+                        {Array.isArray(row) && row.map((cell, j) => {
+                          const isStatus = result.header && result.header[j] && result.header[j].toLowerCase().includes("allow status");
                           return (
                             <td 
                               key={j} 
