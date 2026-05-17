@@ -194,17 +194,21 @@ const Dashboard: React.FC = () => {
           setLastSyncTime(new Date());
         }
       } else {
-        const msg = res.data?.error || "The backend returned an unsuccessful response.";
+        let msg = res.data?.error || "The backend returned an unsuccessful response.";
+        if (typeof msg === "object") msg = JSON.stringify(msg);
         setErrorDetails({ 
           message: msg, 
           advice: res.data?.advice 
         });
       }
     } catch (err: any) {
-      const msg = err.response?.data?.error || err.message || "Failed to reach the backend server.";
+      let msg = err.response?.data?.error || err.message || "Failed to reach the backend server.";
+      if (typeof msg === "object") msg = JSON.stringify(msg);
+      let adv = err.response?.data?.advice;
+      if (typeof adv === "object") adv = JSON.stringify(adv);
       setErrorDetails({ 
         message: msg, 
-        advice: err.response?.data?.advice 
+        advice: adv 
       });
     } finally {
       setIsSyncing(false);
@@ -234,8 +238,10 @@ const Dashboard: React.FC = () => {
       }
     } catch (err: any) {
       console.error("Lookup failed", err);
+      let msg = err.response?.data?.error || err.message || "Lookup failed";
+      if (typeof msg === "object") msg = JSON.stringify(msg);
       setErrorDetails({ 
-        message: "Lookup failed", 
+        message: msg, 
         advice: "Check your connection and try again." 
       });
     } finally {
@@ -319,8 +325,10 @@ const Dashboard: React.FC = () => {
           }, 100);
         }
       } else {
+        let msg = res.data?.error || "Search failed";
+        if (typeof msg === "object") msg = JSON.stringify(msg);
         setErrorDetails({ 
-          message: res.data?.error || "Search failed", 
+          message: msg, 
           advice: res.data?.advice || "Please check your connection and script deployment."
         });
       }
@@ -331,12 +339,13 @@ const Dashboard: React.FC = () => {
       }
       console.error("[App] Search error:", err);
       
-      const errMsg = err.response?.data?.error || err.message || "Search failed";
+      let errMsg = err.response?.data?.error || err.message || "Search failed";
+      if (typeof errMsg === "object") errMsg = JSON.stringify(errMsg);
       
       // Improve 502 / overload messaging so it doesn't look like a total crash
       setErrorDetails({ 
-        message: errMsg.includes("502") ? "Backend Service Timeout (502)" : errMsg, 
-        advice: errMsg.includes("502") || err.code === "ECONNABORTED" 
+        message: typeof errMsg === "string" && errMsg.includes("502") ? "Backend Service Timeout (502)" : errMsg, 
+        advice: (typeof errMsg === "string" && errMsg.includes("502")) || err.code === "ECONNABORTED" 
           ? "The server is overloaded from too many requests. Please wait 1-2 minutes and press 'Search' again." 
           : "The backend might be overloaded or the script is unavailable. Try again in a moment."
       });

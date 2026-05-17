@@ -28,8 +28,8 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div style={{ padding: "20px", color: "red", backgroundColor: "white", zIndex: 9999, position: "relative" }}>
           <h1>App Crashed</h1>
-          <pre>{this.state.error?.message}</pre>
-          <pre>{this.state.error?.stack}</pre>
+          <pre>{typeof this.state.error?.message === 'object' ? JSON.stringify(this.state.error?.message) : String(this.state.error?.message)}</pre>
+          <pre>{typeof this.state.error?.stack === 'object' ? JSON.stringify(this.state.error?.stack) : String(this.state.error?.stack)}</pre>
         </div>
       );
     }
