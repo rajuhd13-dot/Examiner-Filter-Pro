@@ -80,6 +80,7 @@ let MEM_STORE = {
   deptIdx:      null,
   batchIdx:     null,
   trainIdx:     null,
+  trainDateIdx: null,
   campusIdx:    null,
   tpinIdx:      null
 };
@@ -212,7 +213,7 @@ function isAllowedBySubjectsDynamic_(r, subjectsSelected, subjectLogic, allowEng
 
 /*************** INDEX BUILDER ***************/
 function buildIndexes_(body) {
-  const instIdx = new Map(), deptIdx = new Map(), batchIdx = new Map(), trainIdx = new Map(), campusIdx = new Map(), tpinIdx = new Map();
+  const instIdx = new Map(), deptIdx = new Map(), batchIdx = new Map(), trainIdx = new Map(), trainDateIdx = new Map(), campusIdx = new Map(), tpinIdx = new Map();
   const add = (map, val, i) => {
     const key = isBlankish_(val) ? BLANK_KEY : normalize(val);
     if (!map.has(key)) map.set(key, []);
@@ -224,10 +225,11 @@ function buildIndexes_(body) {
     add(deptIdx, r[COL.DEPT], i);
     add(batchIdx, r[COL.BATCH], i);
     add(trainIdx, r[COL.TRAIN], i);
+    add(trainDateIdx, r[COL.TRAIN_DATE], i);
     add(campusIdx, r[COL.CAMPUS], i);
     add(tpinIdx, r[COL.TPIN], i);
   }
-  return { instIdx, deptIdx, batchIdx, trainIdx, campusIdx, tpinIdx };
+  return { instIdx, deptIdx, batchIdx, trainIdx, trainDateIdx, campusIdx, tpinIdx };
 }
 
 /*************** RESULT COLUMNS ***************/
@@ -261,6 +263,10 @@ function getSheetStore_() {
   }
   const values = sh.getRange(1, 1, currentRowCount, sh.getLastColumn()).getValues();
   const header = values[0], body = values.slice(1);
+  // Find column index dynamically
+  const colMap = {};
+  header.forEach((h, i) => colMap[h.trim().toLowerCase()] = i);
+  COL.TRAIN_DATE = colMap['training date'] !== undefined ? colMap['training date'] : COL.TRAIN_DATE;
   for (let i = 0; i < body.length; i++) {
     body[i][COL.MOB1] = cleanMobile_(body[i][COL.MOB1]);
     body[i][COL.ALT]  = cleanMobile_(body[i][COL.ALT]);
@@ -276,12 +282,19 @@ function getFilterOptionsFast() {
     const now = Date.now();
     if (MEM_STORE.options && (now - MEM_STORE.optLoadedAt) < MEM_STORE.optTtlMs) return MEM_STORE.options;
     const { body } = getSheetStore_();
-    const sets = { institutes: new Set(), departments: new Set(), batches: new Set(), trainings: new Set(), campuses: new Set(), tpins: new Set() };
+    const sets = { institutes: new Set(), departments: new Set(), batches: new Set(), trainings: new Set(), trainingDates: new Set(), campuses: new Set(), tpins: new Set() };
     for (const r of body) {
       if (r[COL.INST]) sets.institutes.add(String(r[COL.INST]).trim());
       if (r[COL.DEPT]) sets.departments.add(String(r[COL.DEPT]).trim());
       if (r[COL.BATCH]) sets.batches.add(String(r[COL.BATCH]).trim());
       sets.trainings.add(String(r[COL.TRAIN] || BLANK_LABEL).trim());
+      
+      let trainDate = r[COL.TRAIN_DATE];
+      if (trainDate instanceof Date) {
+        trainDate = Utilities.formatDate(trainDate, Session.getScriptTimeZone(), "yyyy-MM-dd");
+      }
+      sets.trainingDates.add(String(trainDate || BLANK_LABEL).trim());
+      
       sets.campuses.add(String(r[COL.CAMPUS] || BLANK_LABEL).trim());
       sets.tpins.add(String(r[COL.TPIN] || BLANK_LABEL).trim());
     }
@@ -291,6 +304,7 @@ function getFilterOptionsFast() {
       departments: [...sets.departments].sort(),
       batches: [...sets.batches].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true})),
       trainings: [...sets.trainings].sort(),
+      trainingDates: [...sets.trainingDates].sort(),
       campuses: [...sets.campuses].sort(),
       tpins: [...sets.tpins].sort(),
       rowCount: body.length,
@@ -325,6 +339,7 @@ function getFilteredDataFast(filters, page, pageSize) {
       dept: normalizeList(filters?.department),
       batch: normalizeList(filters?.batch),
       train: normalizeList(filters?.trainingsSelected),
+      trainDate: normalizeList(filters?.trainingDatesSelected),
       camp: normalizeList(filters?.campusesSelected),
       onlyAllowed: filters?.onlyAllowed !== false
     };
@@ -343,6 +358,7 @@ function getFilteredDataFast(filters, page, pageSize) {
     candidates = intersect(MEM_STORE.deptIdx, nf.dept);
     candidates = intersect(MEM_STORE.batchIdx, nf.batch);
     candidates = intersect(MEM_STORE.trainIdx, nf.train);
+    candidates = intersect(MEM_STORE.trainDateIdx, nf.trainDate);
     candidates = intersect(MEM_STORE.campusIdx, nf.camp);
 
     const rows = [], ps = pageSize || 200, start = ((page || 1)-1) * ps, end = start + ps;

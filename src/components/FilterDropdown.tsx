@@ -76,15 +76,39 @@ export const FilterDropdown: React.FC<FilterDropdownProps> = ({
     if (selected.length === formattedOptions.length) return "All selected";
     if (selected.length === 1) {
       const opt = formattedOptions.find(o => o.value === selected[0]);
-      return opt ? opt.label : "1 selected";
+      if (!opt) return "1 selected";
+      
+      // If it's a Training Date, try to parse and format it
+      if (label === "Training Report" || label === "Training Date") {
+        if (opt.label.match(/\d{4}-\d{2}-\d{2}/)) {
+           return opt.label; // Already seems to be YYYY-MM-DD
+        }
+        // Try parsing if it's a long date string
+        const date = new Date(opt.label);
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' });
+        }
+      }
+      return opt.label;
     }
     return `${selected.length} selected`;
-  }, [selected, formattedOptions, placeholder, emptyMeansAll]);
+  }, [selected, formattedOptions, placeholder, emptyMeansAll, label]);
 
   // Virtualized Row Component
   const Row = ({ index, style }: any) => {
     const option = filteredOptions[index];
     const isSelected = selected.includes(option.value);
+
+    const formattedLabel = useMemo(() => {
+        if (label === "Training Report" || label === "Training Date") {
+            // Try parsing if it's a long date string
+            const date = new Date(option.label);
+            if (!isNaN(date.getTime()) && option.label.length > 15) {
+                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' });
+            }
+        }
+        return option.label;
+    }, [option.label, label]);
 
     return (
       <div style={style}>
@@ -107,7 +131,7 @@ export const FilterDropdown: React.FC<FilterDropdownProps> = ({
             "text-[13px] font-bold truncate transition-colors",
             isSelected ? "text-blue-700" : "text-gray-600"
           )}>
-            {option.label}
+            {formattedLabel}
           </span>
         </div>
       </div>

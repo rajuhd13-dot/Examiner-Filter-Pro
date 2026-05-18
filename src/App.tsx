@@ -37,6 +37,7 @@ interface FilterOptions {
   departments: string[];
   batches: string[];
   trainings: string[];
+  trainingDates: string[];
   campuses: string[];
   tpins: string[];
   subjects: Subject[];
@@ -48,6 +49,7 @@ interface SearchFilters {
   department: string[];
   batch: string[];
   trainingsSelected: string[];
+  trainingDatesSelected: string[];
   campusesSelected: string[];
   tpinsSelected: string[];
   subjectsSelected: string[];
@@ -72,6 +74,7 @@ const DEFAULT_FILTERS: SearchFilters = {
   department: [],
   batch: [],
   trainingsSelected: [],
+  trainingDatesSelected: [],
   campusesSelected: [],
   tpinsSelected: [],
   subjectsSelected: [],
@@ -667,6 +670,13 @@ const Dashboard: React.FC = () => {
             options={options?.trainings || []} 
             selected={filters.trainingsSelected}
             onChange={(v) => setFilters(prev => ({ ...prev, trainingsSelected: v }))}
+          />
+          <FilterDropdown 
+            label="Training Date" 
+            placeholder="Select Training Date" 
+            options={options?.trainingDates || []} 
+            selected={filters.trainingDatesSelected}
+            onChange={(v) => setFilters(prev => ({ ...prev, trainingDatesSelected: v }))}
           />
           <FilterDropdown 
             label="Physical Campus" 
