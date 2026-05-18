@@ -104,7 +104,7 @@ async function callGAS(action: string, payload: any = {}, method: 'GET' | 'POST'
         },
         maxRedirects: 5,
         validateStatus: () => true,
-        timeout: 180000
+        timeout: 300000
       });
       
       console.log(`[PROXY] Status: ${response.status} for action: ${action}`);
